@@ -87,6 +87,7 @@ export default function ExampleUI({
               const nonceformat = nonce.toNumber();
               console.log("nonce", nonce.toNumber());
               console.log(parseEther("" + parseFloat(amount).toFixed(12)));
+              console.log(amount);
 
               const NewHash = await readContracts[contractName].getTransactionHash(
                 nonce,
@@ -109,7 +110,6 @@ export default function ExampleUI({
                 console.log(await userSigner.address);
                 console.log(signature);
                 console.log(address);
-                console.log(amount);
                 console.log(data);
                 console.log(localProvider._network.chainId);
                 console.log(nonce);
@@ -119,11 +119,11 @@ export default function ExampleUI({
                 const txResult = await gun.get(NewHash).put({
                   chainId: localProvider._network.chainId,
                   address: readContracts[contractName].address,
-                  to: to,
-                  value: amount,
+                  to,
+                  amount,
                   signatures: signature,
                   hash: NewHash,
-                  data: data,
+                  data,
                   nonce: nonceformat,
                   signers: recover,
                 });

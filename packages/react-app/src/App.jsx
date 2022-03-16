@@ -175,6 +175,8 @@ function App(props) {
   */
   const contractName = "MultiSig";
 
+  const nonce = useContractReader(readContracts, "MultiSig", "nonce");
+  // const nonce = ethers.BigNumber.from(nonceBig).toNumber();
   // const ownerEvents = useEventListener(readContracts, contractName, "Owner", localProvider, 1);
 
   // calls();
@@ -353,6 +355,9 @@ function App(props) {
             readContracts={readContracts}
             address={address}
             blockExplorer={blockExplorer}
+            tx={tx}
+            nonce={nonce}
+            signaturesRequired={signaturesRequired}
           />
         </Route>
         <Route path="/subgraph">
