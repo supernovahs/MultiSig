@@ -7,6 +7,8 @@ import { Address, AddressInput } from "../components";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import { useLocalStorage } from "../hooks";
 import { useHistory } from "react-router-dom";
+import { withSuccess } from "antd/lib/modal/confirm";
+import { parseEther, formatEther } from "@ethersproject/units";
 const { ethers } = require("ethers");
 const { Option } = Select;
 
@@ -23,6 +25,7 @@ export default function Hints({
   userSigner,
   localProvider,
   signaturesRequired,
+  gun,
 }) {
   const ownerEvents = useEventListener(readContracts, contractName, "Owner", localProvider, 1);
   const [methodName, setMethodName] = useLocalStorage("addSigner");
@@ -30,11 +33,9 @@ export default function Hints({
   const [data, setdata] = useLocalStorage("Data", "0x00");
   const [newSignatureRequired, setnewSignatureRequired] = useLocalStorage("NewSignatures");
   const [amount, setAmount] = useLocalStorage("amount", "0");
-  const [to, setTo] = useLocalStorage("to");
+  const [to, setTo] = useLocalStorage("0");
   const history = useHistory();
 
-  console.log(signaturesRequired);
-  console.log(ownerEvents);
   return (
     <div>
       <h2 style={{ marginTop: 20 }}>
@@ -89,18 +90,80 @@ export default function Hints({
         </div>
 
         <Button
-          onClick={() => {
-            let calldata = readContracts[contractName].interface.encodeFunctionData(methodName, [
+          onClick={async () => {
+            let calldata = readContracts["MultiSig"].interface.encodeFunctionData(methodName, [
               newOwner,
               newSignatureRequired,
             ]);
             console.log(calldata);
             setdata(calldata);
             setAmount("0");
-            setTo(readContracts[contractName].address);
-            setTimeout(() => {
-              history.push("/exampleui");
-            }, 800);
+            setTo(readContracts["MultiSig"].address);
+
+            const nonce = await readContracts["MultiSig"].nonce();
+            const nonceformat = nonce.toNumber();
+            console.log("nonce", nonce.toNumber());
+            console.log(parseEther("" + parseFloat(amount).toFixed(12)));
+            console.log(amount);
+            console.log(calldata);
+            console.log(to);
+            console.log(signaturesRequired);
+
+            const NewHash = await readContracts[contractName].getTransactionHash(
+              nonce,
+              to,
+              parseEther("" + parseFloat(amount).toFixed(12)),
+              calldata,
+            );
+            console.log("NewHash", NewHash);
+
+            const signature = await userSigner.signMessage(ethers.utils.arrayify(NewHash));
+            console.log("signature", signature);
+
+            const recover = await readContracts[contractName].recover(NewHash, signature);
+            console.log(recover);
+            console.log(userSigner);
+            const isOwner = await readContracts[contractName].isOwner(recover);
+            console.log(isOwner);
+            if (isOwner) {
+              console.log("verfied signer");
+              console.log(await userSigner.address);
+              console.log(signature);
+              console.log(address);
+              console.log(data);
+              console.log(localProvider._network.chainId);
+              console.log(nonce);
+              console.log(recover);
+              console.log(NewHash);
+
+              const txResult = await gun.get(NewHash).put({
+                chainId: localProvider._network.chainId,
+                address: readContracts[contractName].address,
+                to,
+                amount,
+                signatures: signature,
+                hash: NewHash,
+                data,
+                nonce: nonceformat,
+                signers: recover,
+              });
+
+              console.log(txResult);
+
+              gun.get(readContracts[contractName].address + "_" + localProvider._network.chainId).set(txResult);
+
+              txResult.once(data => {
+                console.log("RESULT", data);
+              });
+
+              setTimeout(() => {
+                history.push("/mainnetdai");
+              }, 2000);
+
+              //
+
+              console.log(data);
+            }
           }}
         >
           Submit

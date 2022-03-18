@@ -71,7 +71,7 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
               <p key="Amount">
                 <Balance
                   fontSize={16}
-                  balance={value._isBigNumber ? value : ((value * 1).toFixed(18) * 10 ** 18).toString()}
+                  balance={((value * 1).toFixed(18) * 10 ** 18).toString()}
                   dollarMultiplier={price}
                 />
               </p>

@@ -5,25 +5,28 @@ import QR from "qrcode.react";
 import { ethers } from "ethers";
 import { Balance, Address } from "../components";
 import LocaleProvider from "antd/lib/locale-provider";
+import { Spin } from "antd";
 
-export default function Home({ contractName, price, localProvider, mainnetProvider, blockExplorer, contractConfig }) {
+export default function Home({
+  contractName,
+  price,
+  localProvider,
+  mainnetProvider,
+  blockExplorer,
+  contractConfig,
+  readContracts,
+  address,
+}) {
+  const contractAddress = readContracts && readContracts[contractName] ? readContracts[contractName].address : "";
   return (
     <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
       <div style={{ paddingBottom: 32 }}>
         <div>
-          <Balance
-            address={"0x03E72A5e4c9c83C3a6105789A929406E60A36Fca"}
-            // address={readContracts ? readContracts[contractName].address : readContracts}
-            provider={localProvider}
-            fontSize={64}
-            dollarMultiplier={price}
-            contractConfig={contractConfig}
-            provider={mainnetProvider}
-          />
+          <Balance address={contractAddress} fontSize={64} price={price} provider={mainnetProvider} />
         </div>
         <div>
           <QR
-            value={"0x03E72A5e4c9c83C3a6105789A929406E60A36Fca"}
+            value={contractAddress}
             size="170"
             level="H"
             renderAs="svg"
@@ -34,7 +37,7 @@ export default function Home({ contractName, price, localProvider, mainnetProvid
         </div>
         <div>
           <Address
-            address={"0x03E72A5e4c9c83C3a6105789A929406E60A36Fca"}
+            address={contractAddress}
             ensProvider={mainnetProvider}
             blockExplorer={blockExplorer}
             fontSize={32}

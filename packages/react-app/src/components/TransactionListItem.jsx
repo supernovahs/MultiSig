@@ -45,7 +45,7 @@ const TransactionListItem = function ({
         visible={isModalVisible}
         txnInfo={txnData}
         addressTo={item.to}
-        value={item.amount ? item.amount : item.value}
+        value={item.value}
         handleOk={handleOk}
         mainnetProvider={mainnetProvider}
         price={price}
@@ -78,12 +78,7 @@ const TransactionListItem = function ({
             <Blockie size={4} scale={8} address={item.hash} /> {item.hash.substr(0, 6)}
           </span>
           <Address address={item.to} ensProvider={mainnetProvider} blockExplorer={blockExplorer} fontSize={16} />
-          <Balance
-            balance={item.value ? item.value : parseEther("" + parseFloat(item.amount).toFixed(12))}
-            dollarMultiplier={price}
-            provider={mainnetProvider}
-            address={address}
-          />
+          <h2>{item.amount} ETH</h2>
           <>{children}</>
           <Button onClick={showModal}>
             <EllipsisOutlined />

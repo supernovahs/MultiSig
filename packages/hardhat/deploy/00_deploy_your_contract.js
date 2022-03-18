@@ -20,7 +20,7 @@ module.exports = async ({ getNamedAccounts, deployments, getChainId }) => {
   await deploy("MultiSig", {
     // Learn more about args here: https://www.npmjs.com/package/hardhat-deploy#deploymentsdeploy
     from: deployer,
-    args: [ 80001,["0x1b37B1EC6B7faaCbB9AddCCA4043824F36Fb88D8"],1],
+    args: [ 80001,["0x1b37B1EC6B7faaCbB9AddCCA4043824F36Fb88D8","0xC974d8892268bD58d54Ed1F9815DCa03C6c46790"],2],
     log: true,
     waitConfirmations: 5,
   });

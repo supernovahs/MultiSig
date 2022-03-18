@@ -298,6 +298,7 @@ function App(props) {
             price={price}
             contractConfig={contractConfig}
             provider={localProvider}
+            address={address}
           />
         </Route>
         <Route exact path="/debug">
@@ -326,6 +327,7 @@ function App(props) {
             localProvider={localProvider}
             signaturesRequired={signaturesRequired}
             // ownerEvents={ownerEvents}
+            gun={gun}
           />
         </Route>
         <Route path="/exampleui">

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useContractReader, useNonce, usePoller } from "eth-hooks";
 import { useLocalStorage } from "../hooks";
-import { TransactionListItem } from "../components";
+import { TransactionListItem, Balance } from "../components";
 import { Button, List, Spin } from "antd";
 import { parseEther, formatEther } from "@ethersproject/units";
 
@@ -104,17 +104,19 @@ export default function Pool({
   return (
     <div style={{ maxWidth: 750, margin: "auto", marginTop: 32, marginBottom: 32 }}>
       <h1>
-        <b style={{ padding: 16 }}> Hello</b>
+        <b style={{ padding: 16 }}> Pending Transactions</b>
       </h1>
 
       <List
         bordered
         dataSource={transactions}
         renderItem={item => {
-          console.log(item.parseAmount);
           console.log("item", item);
           const hasSigned = item.signers.indexOf(address) >= 0;
           const hasEnoughSignatures = item.signatures.length >= signaturesRequired.toNumber();
+          console.log(item.value);
+
+          // <Balance balance={item.value} address={address} price={price} provider={mainnetProvider} />;
 
           return (
             <TransactionListItem
@@ -182,16 +184,26 @@ export default function Pool({
                     parseEther("" + parseFloat(item.amount).toFixed(12)),
                     item.data,
                   );
+                  console.log(item.nonce);
+                  console.log(item.to);
+                  console.log(item.amount);
+                  console.log(item.data);
+
                   console.log("newHash", newHash);
 
                   console.log("item.signatures", item.signatures.split(","));
 
                   const [finalSigList, finalSigners] = await getSortedSigList(item.signatures.split(","), newHash);
-
+                  console.log(finalSigList);
+                  console.log(item.amount * 10 ** 18);
+                  // console.log(ethers.utils.parseEther("" + parseFloat(item.amount).toFixed(12)));
+                  console.log(((item.amount * 1).toFixed(18) * 10 ** 18).toString());
+                  console.log(item.amount);
                   tx(
                     writeContracts[contractName].executeTransaction(
                       item.to,
                       parseEther("" + parseFloat(item.amount).toFixed(12)),
+                      // ((item.amount * 1).toFixed(18) * 10 ** 18).toString(),
                       item.data,
                       finalSigList,
                     ),
