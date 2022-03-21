@@ -84,6 +84,7 @@ export default function ExampleUI({
             style={{ marginTop: 32 }}
             onClick={async () => {
               const nonce = await readContracts["MultiSig"].nonce();
+              console.log(nonce);
               const nonceformat = nonce.toNumber();
               console.log("nonce", nonce.toNumber());
               console.log(parseEther("" + parseFloat(amount).toFixed(12)));

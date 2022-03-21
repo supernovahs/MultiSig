@@ -33,7 +33,7 @@ export default function Hints({
   const [data, setdata] = useLocalStorage("Data", "0x00");
   const [newSignatureRequired, setnewSignatureRequired] = useLocalStorage("NewSignatures");
   const [amount, setAmount] = useLocalStorage("amount", "0");
-  const [to, setTo] = useLocalStorage("0");
+  const [to, setTo] = useState("0x");
   const history = useHistory();
 
   return (
@@ -98,7 +98,7 @@ export default function Hints({
             console.log(calldata);
             setdata(calldata);
             setAmount("0");
-            setTo(readContracts["MultiSig"].address);
+            setTo(await readContracts["MultiSig"].address);
 
             const nonce = await readContracts["MultiSig"].nonce();
             const nonceformat = nonce.toNumber();

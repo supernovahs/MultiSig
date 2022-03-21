@@ -29,7 +29,7 @@ import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
-import { Home, ExampleUI, Hints, Subgraph, Pool } from "./views";
+import { Home, ExampleUI, Hints, Subgraph, Pool, Uniswap } from "./views";
 import { useStaticJsonRPC } from "./hooks";
 import Gun from "gun";
 
@@ -54,7 +54,7 @@ const { ethers } = require("ethers");
 */
 
 /// 📡 What chain are your contracts deployed to?
-const initialNetwork = NETWORKS.localhost; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
+const initialNetwork = NETWORKS.rinkeby; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
 
 // 😬 Sorry for all the console logging
 const DEBUG = true;
@@ -114,6 +114,7 @@ function App(props) {
   // Use your injected provider from 🦊 Metamask or if you don't have it then instantly generate a 🔥 burner wallet.
   const userProviderAndSigner = useUserProviderAndSigner(injectedProvider, localProvider, USE_BURNER_WALLET);
   const userSigner = userProviderAndSigner.signer;
+  console.log(userSigner);
 
   useEffect(() => {
     async function getAddress() {
@@ -280,10 +281,13 @@ function App(props) {
           <Link to="/mainnetdai">Mainnet DAI</Link>
         </Menu.Item>
         <Menu.Item key="/subgraph">
-          <Link to="/subgraph">Subgraph</Link>
+          <Link to="/subgraph">Uniswap</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
+        </Menu.Item>
+        <Menu.Item key="/test">
+          <Link to="/test">uni</Link>
         </Menu.Item>
       </Menu>
 
@@ -363,13 +367,24 @@ function App(props) {
           />
         </Route>
         <Route path="/subgraph">
-          <Subgraph
-            subgraphUri={props.subgraphUri}
-            tx={tx}
-            writeContracts={writeContracts}
+          <Uniswap
+            readContracts={readContracts}
+            contractName={contractName}
             mainnetProvider={mainnetProvider}
+            blockExplorer={blockExplorer}
+            price={price}
+            contractConfig={contractConfig}
+            provider={localProvider}
+            address={address}
+            userSigner={userSigner}
+            tx={tx}
+            price={price}
+            contractName={contractName}
+            gun={gun}
+            nonce={nonce}
           />
         </Route>
+        <Route path="/test">{/* <Test readContracts={readContracts} /> */}</Route>
       </Switch>
 
       <ThemeSwitch />
