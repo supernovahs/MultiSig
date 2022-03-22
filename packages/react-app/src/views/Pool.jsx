@@ -188,6 +188,7 @@ export default function Pool({
                   console.log(item.to);
                   console.log(item.amount);
                   console.log(item.data);
+                  console.log("");
 
                   console.log("newHash", newHash);
 
@@ -199,13 +200,15 @@ export default function Pool({
                   // console.log(ethers.utils.parseEther("" + parseFloat(item.amount).toFixed(12)));
                   console.log(((item.amount * 1).toFixed(18) * 10 ** 18).toString());
                   console.log(item.amount);
+                  console.log(ethers.BigNumber.from(parseEther("" + parseFloat(item.amount).toFixed(12))).toNumber());
                   tx(
                     writeContracts[contractName].executeTransaction(
                       item.to,
-                      parseEther("" + parseFloat(item.amount).toFixed(12)),
-                      // ((item.amount * 1).toFixed(18) * 10 ** 18).toString(),
+                      // parseEther("" + parseFloat(item.amount).toFixed(12)),
+                      ethers.BigNumber.from(parseEther("" + parseFloat(item.amount).toFixed(12))).toNumber(),
                       item.data,
                       finalSigList,
+                      // { gasPrice: 100e9 },
                     ),
                   );
                 }}

@@ -177,6 +177,7 @@ function App(props) {
   const contractName = "MultiSig";
 
   const nonce = useContractReader(readContracts, "MultiSig", "nonce");
+  // console.log(nonce.toNumber());
   // const nonce = ethers.BigNumber.from(nonceBig).toNumber();
   // const ownerEvents = useEventListener(readContracts, contractName, "Owner", localProvider, 1);
 
@@ -254,6 +255,8 @@ function App(props) {
   const gun = Gun({
     peers: ["http:localhost:8000/gun"], // Put the relay node that you want here
   });
+
+  console.log(localProvider);
 
   return (
     <div className="App">
@@ -374,7 +377,7 @@ function App(props) {
             blockExplorer={blockExplorer}
             price={price}
             contractConfig={contractConfig}
-            provider={localProvider}
+            providerlocal={localProvider}
             address={address}
             userSigner={userSigner}
             tx={tx}
@@ -382,6 +385,7 @@ function App(props) {
             contractName={contractName}
             gun={gun}
             nonce={nonce}
+            yourLocalBalance={yourLocalBalance}
           />
         </Route>
         <Route path="/test">{/* <Test readContracts={readContracts} /> */}</Route>

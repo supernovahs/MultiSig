@@ -36,6 +36,8 @@ export default function ExampleUI({
   const calldataRef = useRef("0x00");
   const nonce = useContractReader(readContracts, "MultiSig", "nonce");
 
+  console.log(readContracts["MultiSig"]);
+
   return (
     <div>
       <div style={{ border: "1px solid #cccccc", padding: 15, margin: "auto", width: 400, marginTop: 64 }}>
