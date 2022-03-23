@@ -1,11 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useContractReader } from "eth-hooks";
+import { useContractReader, useEventListener } from "eth-hooks";
 import QR from "qrcode.react";
 import { ethers } from "ethers";
-import { Balance, Address } from "../components";
+import { Balance, Address, TransactionListItem } from "../components";
 import LocaleProvider from "antd/lib/locale-provider";
-import { Spin } from "antd";
+import { Spin, List } from "antd";
 
 export default function Home({
   contractName,
@@ -16,13 +16,21 @@ export default function Home({
   contractConfig,
   readContracts,
   address,
+  Executetransactionevents,
 }) {
   const contractAddress = readContracts && readContracts[contractName] ? readContracts[contractName].address : "";
+  console.log(Executetransactionevents);
+  console.log(Executetransactionevents[0]);
   return (
     <div style={{ padding: 32, maxWidth: 750, margin: "auto" }}>
       <div style={{ paddingBottom: 32 }}>
         <div>
-          <Balance address={contractAddress} fontSize={64} price={price} provider={mainnetProvider} />
+          <Balance
+            address={readContracts && readContracts[contractName] ? readContracts[contractName].address : ""}
+            fontSize={64}
+            dollarMultiplier={price}
+            provider={localProvider}
+          />
         </div>
         <div>
           <QR
@@ -43,6 +51,24 @@ export default function Home({
             fontSize={32}
           />
         </div>
+        <List
+          bordered
+          dataSource={Executetransactionevents}
+          renderItem={item => {
+            return (
+              <>
+                <TransactionListItem
+                  item={item}
+                  mainnetProvider={mainnetProvider}
+                  blockExplorer={blockExplorer}
+                  price={price}
+                  readContracts={readContracts}
+                  contractName={contractName}
+                />
+              </>
+            );
+          }}
+        />
       </div>
     </div>
   );

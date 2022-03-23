@@ -11,7 +11,7 @@ contract MultiSig {
     event ExecuteTransaction(
         address indexed owner,
         address payable to,
-        uint256 value,
+        uint256 amount,
         bytes data,
         uint256 nonce,
         bytes32 hash,

@@ -258,6 +258,15 @@ function App(props) {
 
   console.log(localProvider);
 
+
+  const Executetransactionevents= useEventListener(
+    readContracts,
+    contractName,
+    "ExecuteTransaction",
+    localProvider,
+    1
+  );
+
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
@@ -306,6 +315,7 @@ function App(props) {
             contractConfig={contractConfig}
             provider={localProvider}
             address={address}
+            Executetransactionevents= {Executetransactionevents}
           />
         </Route>
         <Route exact path="/debug">

@@ -18,7 +18,7 @@ const TransactionListItem = function ({
   item = item.args ? item.args : item;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [txnInfo, setTxnInfo] = useState(null);
-
+  console.log(item);
   const showModal = () => {
     setIsModalVisible(true);
   };
@@ -30,6 +30,7 @@ const TransactionListItem = function ({
   const contractInterface = readContracts && readContracts[contractName] && readContracts[contractName].interface;
 
   console.log("🔥🔥🔥🔥", item);
+  console.log(item.amount._hex);
   let txnData = "";
   if (item.data !== "0x00") {
     try {
@@ -65,8 +66,8 @@ const TransactionListItem = function ({
             }}
           >
             <p>
-              <b>Event Name :&nbsp;</b>
-              {txnData !== "" ? txnData.functionFragment.name : "Send ETH"}&nbsp;
+              <b>Event:&nbsp;</b>
+              {/* {item.data !== "0x00" ? txnData.functionFragment.name : "Send ETH"}&nbsp; */}
             </p>
             <p>
               <b>Addressed to :&nbsp;</b>
@@ -78,7 +79,13 @@ const TransactionListItem = function ({
             <Blockie size={4} scale={8} address={item.hash} /> {item.hash.substr(0, 6)}
           </span>
           <Address address={item.to} ensProvider={mainnetProvider} blockExplorer={blockExplorer} fontSize={16} />
-          <h2>{item.amount} ETH</h2>
+          <h2>
+            console.log(typeof(item.amount))
+            {item.amount._hex === "BigNumber"
+              ? (ethers.BigNumber.from(item.amount).toNumber() / 10 ** 18).toFixed(2)
+              : item.amount}
+            ETH
+          </h2>
           <>{children}</>
           <Button onClick={showModal}>
             <EllipsisOutlined />
