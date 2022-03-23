@@ -258,13 +258,12 @@ function App(props) {
 
   console.log(localProvider);
 
-
-  const Executetransactionevents= useEventListener(
+  const Executetransactionevents = useEventListener(
     readContracts,
     contractName,
     "ExecuteTransaction",
     localProvider,
-    1
+    1,
   );
 
   return (
@@ -298,9 +297,6 @@ function App(props) {
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
-        <Menu.Item key="/test">
-          <Link to="/test">uni</Link>
-        </Menu.Item>
       </Menu>
 
       <Switch>
@@ -315,7 +311,7 @@ function App(props) {
             contractConfig={contractConfig}
             provider={localProvider}
             address={address}
-            Executetransactionevents= {Executetransactionevents}
+            Executetransactionevents={Executetransactionevents}
           />
         </Route>
         <Route exact path="/debug">
@@ -398,7 +394,6 @@ function App(props) {
             yourLocalBalance={yourLocalBalance}
           />
         </Route>
-        <Route path="/test">{/* <Test readContracts={readContracts} /> */}</Route>
       </Switch>
 
       <ThemeSwitch />

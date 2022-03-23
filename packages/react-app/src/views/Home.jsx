@@ -64,6 +64,7 @@ export default function Home({
                   price={price}
                   readContracts={readContracts}
                   contractName={contractName}
+                  provider={localProvider}
                 />
               </>
             );

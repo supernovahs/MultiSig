@@ -5,7 +5,7 @@ import { Address, Balance, Blockie, TransactionDetailsModal } from "../component
 import { EllipsisOutlined } from "@ant-design/icons";
 import { parseEther, formatEther } from "@ethersproject/units";
 const { ethers } = require("ethers");
-const TransactionListItem = function ({
+const TransactionListItemPool = function ({
   item,
   mainnetProvider,
   blockExplorer,
@@ -32,7 +32,7 @@ const TransactionListItem = function ({
 
   console.log("🔥🔥🔥🔥", item);
   console.log(item.amount._hex);
-  console.log(ethers.BigNumber.from(item.amount).toNumber());
+  //   console.log(ethers.BigNumber.from(item.amount).toNumber());
   let txnData = "";
   if (item.data !== "0x00") {
     try {
@@ -48,7 +48,7 @@ const TransactionListItem = function ({
         visible={isModalVisible}
         txnInfo={txnData}
         addressTo={item.to}
-        value={item.amount}
+        value={item.amount * 10 ** 18}
         handleOk={handleOk}
         mainnetProvider={mainnetProvider}
         price={price}
@@ -87,7 +87,7 @@ const TransactionListItem = function ({
           </span>
           <Address address={item.to} ensProvider={mainnetProvider} blockExplorer={blockExplorer} fontSize={16} />
           <h2>
-            {(ethers.BigNumber.from(item.amount).toNumber() / 10 ** 18).toFixed(4)}
+            {item.amount.toFixed(4)}
             ETH
           </h2>
           <>{children}</>
@@ -99,4 +99,4 @@ const TransactionListItem = function ({
     </>
   );
 };
-export default TransactionListItem;
+export default TransactionListItemPool;

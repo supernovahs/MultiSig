@@ -2,7 +2,17 @@ import React from "react";
 import { Modal } from "antd";
 import Address from "./Address";
 import Balance from "./Balance";
-const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, addressTo, value, price, txnInfo }) {
+import Item from "antd/lib/list/Item";
+const TransactionDetailsModal = function ({
+  visible,
+  handleOk,
+  mainnetProvider,
+  addressTo,
+  value,
+  price,
+  txnInfo,
+  provider,
+}) {
   return (
     <Modal
       title="Transaction Details"
@@ -68,24 +78,18 @@ const TransactionDetailsModal = function ({ visible, handleOk, mainnetProvider, 
                 <b>Address To :&nbsp;</b>
                 <Address fontSize={16} address={addressTo} ensProvider={mainnetProvider} />
               </div>
-              <p key="Amount">
-                <Balance
-                  fontSize={16}
-                  balance={((value * 1).toFixed(18) * 10 ** 18).toString()}
-                  dollarMultiplier={price}
-                />
-              </p>
+              <p key="Amount">{(value / 10 ** 18).toFixed(4)}ETH</p>
             </>
           )}
-          <p>
+          {/* <p>
             {txnInfo ? (
               <>
-                <b>SigHash : &nbsp;</b> {txnInfo.sighash}
+                <b>SigHash : &nbsp;</b> {txnInfo}
               </>
             ) : (
               ""
             )}
-          </p>
+          </p> */}
         </div>
       }
     </Modal>

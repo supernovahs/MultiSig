@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useContractReader, useNonce, usePoller } from "eth-hooks";
 import { useLocalStorage } from "../hooks";
-import { TransactionListItem, Balance } from "../components";
+import { TransactionListItem, Balance, TransactionListItemPool } from "../components";
 import { Button, List, Spin } from "antd";
 import { parseEther, formatEther } from "@ethersproject/units";
 
@@ -119,7 +119,7 @@ export default function Pool({
           // <Balance balance={item.value} address={address} price={price} provider={mainnetProvider} />;
 
           return (
-            <TransactionListItem
+            <TransactionListItemPool
               item={item}
               mainnetProvider={mainnetProvider}
               blockExplorer={blockExplorer}
@@ -216,7 +216,7 @@ export default function Pool({
               >
                 Exec
               </Button>
-            </TransactionListItem>
+            </TransactionListItemPool>
           );
         }}
       />
