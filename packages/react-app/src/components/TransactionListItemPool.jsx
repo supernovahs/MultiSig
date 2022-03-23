@@ -87,7 +87,7 @@ const TransactionListItemPool = function ({
           </span>
           <Address address={item.to} ensProvider={mainnetProvider} blockExplorer={blockExplorer} fontSize={16} />
           <h2>
-            {item.amount.toFixed(4)}
+            {(item.amount = "0" ? 0 : item.amount.toFixed(4))}
             ETH
           </h2>
           <>{children}</>

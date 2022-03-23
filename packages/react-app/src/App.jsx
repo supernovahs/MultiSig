@@ -289,7 +289,7 @@ function App(props) {
           <Link to="/exampleui">Create</Link>
         </Menu.Item>
         <Menu.Item key="/mainnetdai">
-          <Link to="/mainnetdai">Mainnet DAI</Link>
+          <Link to="/mainnetdai">Pool</Link>
         </Menu.Item>
         <Menu.Item key="/subgraph">
           <Link to="/subgraph">Uniswap</Link>
