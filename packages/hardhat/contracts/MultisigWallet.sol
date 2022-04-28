@@ -112,7 +112,7 @@ contract MultiSig {
         for (uint256 i = 0; i < signatures.length; i++) {
             address recovered = recover(_hash, signatures[i]);
             require(
-                recovered != duplicateGuard,
+                recovered > duplicateGuard,
                 "executeTransaction: duplicate or unordered signatures. fail."
             );
             duplicateGuard = recovered;

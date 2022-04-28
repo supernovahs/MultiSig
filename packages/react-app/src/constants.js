@@ -107,7 +107,7 @@ export const NETWORKS = {
     rpcUrl: `https://rinkeby.arbitrum.io/rpc`,
   },
   arbitrum: {
-    name: "Arbitrum",
+    name: "arbitrum",
     color: "#50a0ea",
     chainId: 42161,
     blockExplorer: "https://explorer.arbitrum.io/#/",
