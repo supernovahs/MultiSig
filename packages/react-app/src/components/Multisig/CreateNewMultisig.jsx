@@ -1,9 +1,10 @@
 import React from "react";
-import { Button, Divider, Modal, Spin, InputNumber, Statistic, text } from "antd";
+import { Button, Divider, Modal, Spin, InputNumber, Layout } from "antd";
 import { useState, useEffect } from "react";
 import { AddressInput } from "..";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
-export default function CreateNewMultisig({ address, mainnetProvider, localProvider }) {
+import { PlusOutlined, DeleteOutlined, InfoCircleOutlined } from "@ant-design/icons";
+const { Header, Footer, Sider, Content } = Layout;
+export default function CreateNewMultisig({ address, mainnetProvider, localProvider, NETWORKS }) {
   const [visible, setVisible] = useState(false);
   const [owners, setOwners] = useState([""]);
   const [signaturesRequired, setsignaturesRequired] = useState();
@@ -20,6 +21,9 @@ export default function CreateNewMultisig({ address, mainnetProvider, localProvi
   } else {
     networkName = localProvider && localProvider._network && localProvider._network.name;
   }
+  console.log(networkName);
+  console.log(NETWORKS["arbitrum"].color);
+
   useEffect(() => {
     if (address) {
       setOwners([address, ""]);
@@ -53,9 +57,10 @@ export default function CreateNewMultisig({ address, mainnetProvider, localProvi
   };
   console.log([...owners]);
 
+  let modalHeading = "Create New Multisig Wallet";
   return (
     <div>
-      <Button type="primary" style={{ marginRight: 10 }} onClick={showvisibility}>
+      <Button type="primary" style={{ marginRight: 10, color: "White" }} onClick={showvisibility}>
         Create New Multisig
       </Button>
 
@@ -73,6 +78,10 @@ export default function CreateNewMultisig({ address, mainnetProvider, localProvi
         ]}
       >
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <text style={{ paddingBottom: 4 }}>
+            Insert <b>Addresses </b>of Signers of the MultiSig
+          </text>
+
           {owners.map((owner, index) => (
             <div key={index} style={{ display: "flex", gap: "1rem" }}>
               <div style={{ width: "90%" }}>
@@ -96,6 +105,7 @@ export default function CreateNewMultisig({ address, mainnetProvider, localProvi
               <PlusOutlined />
             </Button>
           </div>
+          <text>No of Signatures to execute a transaction</text>
           <div style={{ width: "90%" }}>
             <InputNumber
               style={{ width: "50%" }}
@@ -104,9 +114,12 @@ export default function CreateNewMultisig({ address, mainnetProvider, localProvi
               onChange={val => setsignaturesRequired(val)}
             />
           </div>
+
           <div style={{ width: "90%" }}>
+            {console.log(NETWORKS[networkName] && NETWORKS[networkName].color)}
             <text style={{ fontSize: "large" }}>
-              You are deploying to <b>{networkName}</b>
+              You are deploying to{" "}
+              <b style={{ color: NETWORKS[networkName] && NETWORKS[networkName].color }}>{networkName}</b>
             </text>
           </div>
         </div>

@@ -1,14 +1,14 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useContractReader, useNonce, usePoller } from "eth-hooks";
 import { useLocalStorage } from "../hooks";
 import { TransactionListItem, Balance, TransactionListItemPool } from "../components";
 import { Button, List, Spin } from "antd";
 import { parseEther, formatEther } from "@ethersproject/units";
-
+const axios = require("axios");
 const { ethers } = require("ethers");
 
 export default function Pool({
-  gun,
+  poolServerUrl,
   userSigner,
   contractName,
   localProvider,
@@ -22,51 +22,36 @@ export default function Pool({
   signaturesRequired,
   price,
 }) {
-  const Arraytransactions = [];
   const contractAddress = readContracts && readContracts[contractName] ? readContracts[contractName].address : "";
-  let txresult;
   const [transactions, setTransactions] = useState();
-
-  if (
-    readContracts &&
-    readContracts[contractName] &&
-    localProvider &&
-    localProvider._network &&
-    localProvider._network.chainId
-  ) {
-    txresult = gun.get(contractAddress + "_" + localProvider._network.chainId);
-    console.log(txresult);
-    txresult.map().once(async transaction => {
-      Arraytransactions.push(transaction);
-    });
-    console.log(Arraytransactions);
-  }
 
   usePoller(() => {
     const getTransactions = async () => {
+      const res = await axios.get(poolServerUrl + contractAddress + "_" + localProvider._network.chainId);
       if (true) console.log("🛰 Requesting Transaction List");
       const newTransactions = [];
 
-      for (const i in Arraytransactions) {
-        const thisNonce = ethers.BigNumber.from(Arraytransactions[i].nonce).toNumber();
+      for (const i in res.data) {
+        const thisNonce = ethers.BigNumber.from(res.data[i].nonce).toNumber();
         let a = Number(nonce);
         console.log(thisNonce);
         console.log(a);
         if (thisNonce >= a) {
           const validSignatures = [];
-          const signatures = Arraytransactions[i].signatures.split(",");
+          const signatures = res.data[i].signatures.split(",");
           for (const s in signatures) {
-            const signer = await readContracts[contractName].recover(Arraytransactions[i].hash, signatures[s]);
+            const signer = await readContracts[contractName].recover(res.data[i].hash, signatures[s]);
             const isOwner = await readContracts[contractName].isOwner(signer);
             if (signer && isOwner) {
               validSignatures.push({ signer, signature: signatures[s] });
             }
           }
-          const update = { ...Arraytransactions[i], validSignatures };
+          const update = { ...res.data[i], validSignatures };
           newTransactions.push(update);
         }
       }
       setTransactions(newTransactions);
+      console.log(transactions);
     };
     if (readContracts) getTransactions();
   }, 3777);
@@ -114,9 +99,6 @@ export default function Pool({
           console.log("item", item);
           const hasSigned = item.signers.indexOf(address) >= 0;
           const hasEnoughSignatures = item.signatures.length >= signaturesRequired.toNumber();
-          console.log(item.value);
-
-          // <Balance balance={item.value} address={address} price={price} provider={mainnetProvider} />;
 
           return (
             <TransactionListItemPool
@@ -153,6 +135,8 @@ export default function Pool({
                   const isOwner = await readContracts[contractName].isOwner(recover);
                   console.log("isOwner", isOwner);
 
+                  console.log("amount sending", item.amount);
+
                   if (isOwner) {
                     const [finalSigList, finalSigners] = await getSortedSigList(
                       [...item.signatures.split(","), signature],
@@ -167,8 +151,10 @@ export default function Pool({
                       signatures: joinedSigList,
                       signers: joinedFinalSigners,
                     };
-                    const newSigTx = gun.get(newItem.hash + "newSig").put(newItem);
-                    txresult.set(newSigTx);
+                    const newSigTx = await axios.post(poolServerUrl, {
+                      ...newItem,
+                    });
+                    console.log(newSigTx);
                   }
                 }}
                 type="secondary"
@@ -189,6 +175,7 @@ export default function Pool({
                   console.log(item.amount);
                   console.log(item.data);
                   console.log("");
+                  console.log(item);
 
                   console.log("newHash", newHash);
 

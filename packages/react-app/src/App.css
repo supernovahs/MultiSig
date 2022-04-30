@@ -1,4 +1,14 @@
-.App {
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+ .App {
   text-align: center;
   padding-left: calc(100vw - 100%);
+  background-color: rgb(12, 1, 1);
+
+  font-size: medium;
 }
+
+
+
+
+

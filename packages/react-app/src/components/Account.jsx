@@ -102,14 +102,22 @@ export default function Account({
       modalButtons.push(
         <Button
           key="loginbutton"
-          style={{ verticalAlign: "top", marginLeft: 8, marginTop: 4, width: width }}
+          style={{
+            verticalAlign: "top",
+            marginLeft: 8,
+            marginTop: 4,
+            width: width,
+            backgroundColor: "purple",
+            color: "White",
+            border: "1px solid black",
+          }}
           size="large"
           onClick={loadWeb3Modal}
           key="second"
           type="primary"
-          shape="round"
+          shape="Rectangle"
         >
-          Connect Wallet
+          Connect
         </Button>,
       );
     }

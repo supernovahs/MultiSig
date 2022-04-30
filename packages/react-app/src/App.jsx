@@ -24,40 +24,18 @@ import {
   FaucetHint,
   NetworkSwitch,
   CreateNewMultisig,
+  WalletConnectInput,
 } from "./components";
-import { NETWORKS, ALCHEMY_KEY, NETWORK } from "./constants";
+import { NETWORKS, ALCHEMY_KEY, NETWORK, BACKEND_URL } from "./constants";
 import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph, Pool, Uniswap } from "./views";
 import { useStaticJsonRPC } from "./hooks";
-import Gun from "gun";
 import { Select } from "antd";
 
 const { ethers } = require("ethers");
-/*
-    Welcome to 🏗 scaffold-eth !
-
-    Code:
-    https://github.com/scaffold-eth/scaffold-eth
-
-    Support:
-    https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA
-    or DM @austingriffith on twitter or telegram
-
-    You should get your own Alchemy.com & Infura.io ID and put it in `constants.js`
-    (this is your connection to the main Ethereum network for ENS etc.)
-
-
-    🌏 EXTERNAL CONTRACTS:
-    You can also bring in contract artifacts in `constants.js`
-    (and then use the `useExternalContractLoader()` hook!)
-*/
-
-// <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
-
-// 😬 Sorry for all the console logging
 const DEBUG = true;
 const NETWORKCHECK = true;
 const USE_BURNER_WALLET = true; // toggle burner wallet feature
@@ -87,6 +65,7 @@ const providers = [
 function App(props) {
   // specify all the chains your app is available on. Eg: ['localhost', 'mainnet', ...otherNetworks ]
   // reference './constants.js' for other networks
+
   const networkOptions = ["mainnet", "matic", "Arbitrum", "optimism", "xdai", "rinkeby"];
 
   const [injectedProvider, setInjectedProvider] = useState();
@@ -187,6 +166,7 @@ function App(props) {
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
   */
   const contractName = "MultiSig";
+  const contractAddress = readContracts[contractName] && readContracts[contractName].address;
 
   const nonce = useContractReader(readContracts, "MultiSig", "nonce");
   // console.log(nonce.toNumber());
@@ -259,7 +239,7 @@ function App(props) {
       networkDisplay = (
         <div style={{ zIndex: 2, position: "absolute", right: 0, top: 130, padding: 16 }}>
           <Alert
-            message="⚠️ Wrong Network"
+            message="⚠️ Wrong Network ID"
             description={
               <div>
                 <p>
@@ -320,7 +300,9 @@ function App(props) {
     if (networkList.indexOf(networkName) > -1) {
       options.push(
         <Select.Option key={networkName} value={NETWORKS[networkName].name}>
-          <span style={{ color: NETWORKS[networkName].color, fontSize: 20 }}>{NETWORKS[networkName].name}</span>
+          <span role="img" aria-label={"smile"} style={{ color: NETWORKS[networkName].color, fontSize: 20 }}>
+            {NETWORKS[networkName].name}
+          </span>
         </Select.Option>,
       );
     }
@@ -410,9 +392,6 @@ function App(props) {
 
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
   const signaturesRequired = useContractReader(readContracts, contractName, "signaturesRequired");
-  const gun = Gun({
-    peers: ["http:localhost:8000/gun"], // Put the relay node that you want here
-  });
 
   console.log(localProvider);
 
@@ -429,14 +408,14 @@ function App(props) {
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
       <Header />
-      <NetworkDisplay
+      {/* <NetworkDisplay
         NETWORKCHECK={NETWORKCHECK}
         localChainId={localChainId}
         selectedChainId={selectedChainId}
         targetNetwork={targetNetwork}
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         USE_NETWORK_SELECTOR={USE_NETWORK_SELECTOR}
-      />
+      /> */}
       {/* <span className="flex inline-flex sm:ml-auto sm:mt-0 flex-col lg:flex-row ml-2">
         <Account
           address={address}
@@ -453,24 +432,29 @@ function App(props) {
         />
       </span> */}
       <div style={{ position: "absolute", left: "20" }}>
-        <CreateNewMultisig address={address} mainnetProvider={mainnetProvider} localProvider={localProvider} />
+        <CreateNewMultisig
+          address={address}
+          mainnetProvider={mainnetProvider}
+          localProvider={localProvider}
+          NETWORKS={NETWORKS}
+        />
       </div>
 
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">Multi Sig</Link>
         </Menu.Item>
-        <Menu.Item key="/hints">
-          <Link to="/hints">Owners</Link>
+        <Menu.Item key="/signers">
+          <Link to="/signers">Owners</Link>
         </Menu.Item>
-        <Menu.Item key="/exampleui">
-          <Link to="/exampleui">Create</Link>
+        <Menu.Item key="/proposetransaction">
+          <Link to="/proposetransaction">Create</Link>
         </Menu.Item>
-        <Menu.Item key="/mainnetdai">
-          <Link to="/mainnetdai">Pool</Link>
+        <Menu.Item key="/pendingtransaction">
+          <Link to="/pendingtransaction">Pool</Link>
         </Menu.Item>
-        <Menu.Item key="/subgraph">
-          <Link to="/subgraph">Uniswap</Link>
+        <Menu.Item key="/uniswap">
+          <Link to="/uniswap">Uniswap</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
@@ -479,6 +463,7 @@ function App(props) {
       <Switch>
         <Route exact path="/">
           <Home
+            contractAddress={contractAddress}
             yourLocalBalance={yourLocalBalance}
             readContracts={readContracts}
             contractName={contractName}
@@ -502,8 +487,10 @@ function App(props) {
             contractConfig={contractConfig}
           />
         </Route>
-        <Route path="/hints">
+        <Route path="/signers">
           <Hints
+            contractAddress={contractAddress}
+            poolServerUrl={BACKEND_URL}
             address={address}
             yourLocalBalance={yourLocalBalance}
             mainnetProvider={mainnetProvider}
@@ -517,11 +504,12 @@ function App(props) {
             localProvider={localProvider}
             signaturesRequired={signaturesRequired}
             // ownerEvents={ownerEvents}
-            gun={gun}
           />
         </Route>
-        <Route path="/exampleui">
+        <Route path="/proposetransaction">
           <ExampleUI
+            contractAddress={contractAddress}
+            poolServerUrl={BACKEND_URL}
             address={address}
             userSigner={userSigner}
             mainnetProvider={mainnetProvider}
@@ -533,12 +521,12 @@ function App(props) {
             readContracts={readContracts}
             purpose={purpose}
             contractName={contractName}
-            gun={gun}
           />
         </Route>
-        <Route path="/mainnetdai">
+        <Route path="/pendingtransaction">
           <Pool
-            gun={gun}
+            contractAddress={contractAddress}
+            poolServerUrl={BACKEND_URL}
             userSigner={userSigner}
             contractName={contractName}
             localProvider={localProvider}
@@ -552,7 +540,7 @@ function App(props) {
             signaturesRequired={signaturesRequired}
           />
         </Route>
-        <Route path="/subgraph">
+        <Route path="/uniswap">
           <Uniswap
             readContracts={readContracts}
             contractName={contractName}
@@ -566,7 +554,6 @@ function App(props) {
             tx={tx}
             price={price}
             contractName={contractName}
-            gun={gun}
             nonce={nonce}
             yourLocalBalance={yourLocalBalance}
           />

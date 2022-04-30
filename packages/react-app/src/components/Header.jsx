@@ -1,16 +1,18 @@
 import { PageHeader } from "antd";
 import React from "react";
-
+import "antd/dist/antd.css";
+import "../Header.css";
 // displays a page header
 
 export default function Header() {
   return (
-    <a href="https://github.com/austintgriffith/scaffold-eth" target="_blank" rel="noopener noreferrer">
-      <PageHeader
-        title="🏗 scaffold-eth"
-        subTitle="forkable Ethereum dev stack focused on fast product iteration"
-        style={{ cursor: "pointer" }}
-      />
-    </a>
+    <div>
+      <div>
+        <div className="bg">
+          <div className="headerspace">SoulSafe</div>
+          <div className="tagline">Wallet for life</div>
+        </div>
+      </div>
+    </div>
   );
 }

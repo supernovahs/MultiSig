@@ -9,10 +9,13 @@ import { useLocalStorage } from "../hooks";
 import { useHistory } from "react-router-dom";
 import { withSuccess } from "antd/lib/modal/confirm";
 import { parseEther, formatEther } from "@ethersproject/units";
+import axios from "axios";
 const { ethers } = require("ethers");
 const { Option } = Select;
 
 export default function Hints({
+  contractAddress,
+  poolServerUrl,
   yourLocalBalance,
   mainnetProvider,
   price,
@@ -38,28 +41,33 @@ export default function Hints({
 
   return (
     <div>
-      <h2 style={{ marginTop: 20 }}>
+      <h2 style={{ marginTop: 20, borderBlockEnd: "1px solid red" }}>
         Signatures Required: {signaturesRequired ? signaturesRequired.toNumber() : <Spin></Spin>}
       </h2>
-      <List
-        bordered
-        dataSource={ownerEvents}
-        renderItem={item => {
-          return (
-            <List.Item key={"owner" + item.args[0] + "blockN" + item.blockNumber}>
-              <Address
-                address={item.args[0]}
-                ensProvider={mainnetProvider}
-                fontSize={30}
-                blockExplorer={blockExplorer}
-              />
-              <div>
-                <p>{item.args[1] ? "👍" : "👎"}</p>
-              </div>
-            </List.Item>
-          );
-        }}
-      />
+      <div style={{ border: "3px  solid white" }}>
+        <List
+          dataSource={ownerEvents}
+          renderItem={item => {
+            return (
+              <List.Item
+                key={"owner" + item.args[0] + "blockN" + item.blockNumber}
+                style={{ border: "1px solid black" }}
+              >
+                <div></div>
+                <Address
+                  address={item.args[0]}
+                  ensProvider={mainnetProvider}
+                  fontSize={30}
+                  blockExplorer={blockExplorer}
+                />
+                <div>
+                  <p>{item.args[1] ? "👍" : "👎"}</p>
+                </div>
+              </List.Item>
+            );
+          }}
+        />
+      </div>
 
       <div style={{ border: "1px solid #cccccc", padding: 20, width: 400, margin: "auto", marginTop: 10 }}>
         <div style={{ margin: 10, padding: 14 }}>
@@ -97,7 +105,7 @@ export default function Hints({
             ]);
             console.log(calldata);
             setdata(calldata);
-            setAmount("0");
+            setAmount(0);
             setTo(await readContracts["MultiSig"].address);
 
             const nonce = await readContracts["MultiSig"].nonce();
@@ -109,12 +117,7 @@ export default function Hints({
             console.log(to);
             console.log(signaturesRequired);
 
-            const NewHash = await readContracts[contractName].getTransactionHash(
-              nonce,
-              to,
-              parseEther("" + parseFloat(amount).toFixed(12)),
-              calldata,
-            );
+            const NewHash = await readContracts[contractName].getTransactionHash(nonce, to, 0, calldata);
             console.log("NewHash", NewHash);
 
             const signature = await userSigner.signMessage(ethers.utils.arrayify(NewHash));
@@ -136,7 +139,7 @@ export default function Hints({
               console.log(recover);
               console.log(NewHash);
 
-              const txResult = await gun.get(NewHash).put({
+              const txResult = await axios.post(poolServerUrl, {
                 chainId: localProvider._network.chainId,
                 address: readContracts[contractName].address,
                 to,
@@ -150,14 +153,10 @@ export default function Hints({
 
               console.log(txResult);
 
-              gun.get(readContracts[contractName].address + "_" + localProvider._network.chainId).set(txResult);
-
-              txResult.once(data => {
-                console.log("RESULT", data);
-              });
+              console.log("Result", data);
 
               setTimeout(() => {
-                history.push("/mainnetdai");
+                history.push("/proposetransaction");
               }, 2000);
 
               //

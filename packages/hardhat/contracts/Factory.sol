@@ -6,10 +6,10 @@ contract Factory  {
 
     MultiSig multisig;
 
-    function createNewMultiSig(address[] memory owners,uint chainId,uint NoOfSignaturesRequired,]){
+    function createNewMultiSig (address[] memory owners,uint chainId,uint NoOfSignaturesRequired)public {
         multisig = new MultiSig(chainId,owners,NoOfSignaturesRequired);
     }
 
-    
+
 
 }
