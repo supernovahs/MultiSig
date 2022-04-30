@@ -4,6 +4,8 @@ export const INFURA_ID = "460f40a260564ac4a4f4b3fffb032dad";
 // MY ETHERSCAN_ID, SWAP IN YOURS FROM https://etherscan.io/myapikey
 export const ETHERSCAN_KEY = "DNXJA8RX2Q3VZ4URQIWP7Z68CJXQZSC6AW";
 
+export const BACKEND_URL = "http://localhost:49832/"
+
 // BLOCKNATIVE ID FOR Notify.js:
 export const BLOCKNATIVE_DAPPID = "0b58206a-f3c0-4701-a62f-73c7243e8c77";
 
@@ -23,6 +25,7 @@ export const NETWORKS = {
     chainId: 1,
     rpcUrl: `https://mainnet.infura.io/v3/${INFURA_ID}`,
     blockExplorer: "https://etherscan.io/",
+    logo: "🐑"
   },
   kovan: {
     name: "kovan",
@@ -107,7 +110,7 @@ export const NETWORKS = {
     rpcUrl: `https://rinkeby.arbitrum.io/rpc`,
   },
   arbitrum: {
-    name: "Arbitrum",
+    name: "arbitrum",
     color: "#50a0ea",
     chainId: 42161,
     blockExplorer: "https://explorer.arbitrum.io/#/",

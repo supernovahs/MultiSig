@@ -1,4 +1,4 @@
-import { Button, Col, Menu, Row } from "antd";
+import { Button, Col, Menu, Row, Alert } from "antd";
 import "antd/dist/antd.css";
 import { useEventListener } from "eth-hooks/events/useEventListener";
 import {
@@ -23,46 +23,37 @@ import {
   NetworkDisplay,
   FaucetHint,
   NetworkSwitch,
+  CreateNewMultisig,
+  WalletConnectInput,
 } from "./components";
-import { NETWORKS, ALCHEMY_KEY } from "./constants";
+import { NETWORKS, ALCHEMY_KEY, NETWORK, BACKEND_URL } from "./constants";
 import externalContracts from "./contracts/external_contracts";
 // contracts
 import deployedContracts from "./contracts/hardhat_contracts.json";
 import { Transactor, Web3ModalSetup } from "./helpers";
 import { Home, ExampleUI, Hints, Subgraph, Pool, Uniswap } from "./views";
 import { useStaticJsonRPC } from "./hooks";
-import Gun from "gun";
+import { Select } from "antd";
 
 const { ethers } = require("ethers");
-/*
-    Welcome to 🏗 scaffold-eth !
-
-    Code:
-    https://github.com/scaffold-eth/scaffold-eth
-
-    Support:
-    https://t.me/joinchat/KByvmRe5wkR-8F_zz6AjpA
-    or DM @austingriffith on twitter or telegram
-
-    You should get your own Alchemy.com & Infura.io ID and put it in `constants.js`
-    (this is your connection to the main Ethereum network for ENS etc.)
-
-
-    🌏 EXTERNAL CONTRACTS:
-    You can also bring in contract artifacts in `constants.js`
-    (and then use the `useExternalContractLoader()` hook!)
-*/
-
-/// 📡 What chain are your contracts deployed to?
-const initialNetwork = NETWORKS.rinkeby; // <------- select your target frontend network (localhost, rinkeby, xdai, mainnet)
-
-// 😬 Sorry for all the console logging
 const DEBUG = true;
 const NETWORKCHECK = true;
 const USE_BURNER_WALLET = true; // toggle burner wallet feature
 const USE_NETWORK_SELECTOR = false;
 
 const web3Modal = Web3ModalSetup();
+
+const configuredNetworks = ["mainnet", "matic", "arbitrum", "optimism", "xdai", "rinkeby"];
+if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+  configuredNetworks.push("localhost");
+}
+
+const cachedNetwork = window.localStorage.getItem("network");
+if (DEBUG) console.log("📡 Connecting to New Cached Network: ", cachedNetwork);
+
+/// 📡 What chain are your contracts deployed to?
+let targetNetwork = NETWORKS[cachedNetwork || "mainnet"];
+console.log("target Network is ", targetNetwork);
 
 // 🛰 providers
 const providers = [
@@ -74,14 +65,13 @@ const providers = [
 function App(props) {
   // specify all the chains your app is available on. Eg: ['localhost', 'mainnet', ...otherNetworks ]
   // reference './constants.js' for other networks
-  const networkOptions = [initialNetwork.name, "mainnet", "rinkeby"];
+
+  const networkOptions = ["mainnet", "matic", "Arbitrum", "optimism", "xdai", "rinkeby"];
 
   const [injectedProvider, setInjectedProvider] = useState();
   const [address, setAddress] = useState();
   const [selectedNetwork, setSelectedNetwork] = useState(networkOptions[0]);
   const location = useLocation();
-
-  const targetNetwork = NETWORKS[selectedNetwork];
 
   // 🔭 block explorer URL
   const blockExplorer = targetNetwork.blockExplorer;
@@ -90,6 +80,7 @@ function App(props) {
   const localProvider = useStaticJsonRPC([
     process.env.REACT_APP_PROVIDER ? process.env.REACT_APP_PROVIDER : targetNetwork.rpcUrl,
   ]);
+  console.log("local Provider is ", localProvider);
   const mainnetProvider = useStaticJsonRPC(providers);
 
   if (DEBUG) console.log(`Using ${selectedNetwork} network`);
@@ -175,6 +166,7 @@ function App(props) {
   console.log("🏷 Resolved austingriffith.eth as:",addressFromENS)
   */
   const contractName = "MultiSig";
+  const contractAddress = readContracts[contractName] && readContracts[contractName].address;
 
   const nonce = useContractReader(readContracts, "MultiSig", "nonce");
   // console.log(nonce.toNumber());
@@ -222,6 +214,154 @@ function App(props) {
     myMainnetDAIBalance,
   ]);
 
+  let networkDisplay = "";
+  if (NETWORKCHECK && localChainId && selectedChainId && localChainId !== selectedChainId) {
+    const networkSelected = NETWORK(selectedChainId);
+    const networkLocal = NETWORK(localChainId);
+    if (selectedChainId === 1337 && localChainId === 31337) {
+      networkDisplay = (
+        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 130, padding: 16 }}>
+          <Alert
+            message="⚠️ Wrong Network ID"
+            description={
+              <div>
+                You have <b>chain id 1337</b> for localhost and you need to change it to <b>31337</b> to work with
+                HardHat.
+                <div>(MetaMask -&gt; Settings -&gt; Networks -&gt; Chain ID -&gt; 31337)</div>
+              </div>
+            }
+            type="error"
+            closable={false}
+          />
+        </div>
+      );
+    } else {
+      networkDisplay = (
+        <div style={{ zIndex: 2, position: "absolute", right: 0, top: 130, padding: 16 }}>
+          <Alert
+            message="⚠️ Wrong Network ID"
+            description={
+              <div>
+                <p>
+                  You have <b>{networkSelected && networkSelected.name}</b> selected.
+                </p>
+                <Button
+                  onClick={async () => {
+                    const ethereum = window.ethereum;
+                    const data = [
+                      {
+                        chainId: "0x" + targetNetwork.chainId.toString(16),
+                        chainName: targetNetwork.name,
+                        nativeCurrency: targetNetwork.nativeCurrency,
+                        rpcUrls: [targetNetwork.rpcUrl],
+                        blockExplorerUrls: [targetNetwork.blockExplorer],
+                      },
+                    ];
+                    console.log("data", data);
+                    // try to add new chain
+                    try {
+                      await ethereum.request({ method: "wallet_addEthereumChain", params: data });
+                    } catch (error) {
+                      // if failed, try a network switch instead
+                      await ethereum
+                        .request({
+                          method: "wallet_switchEthereumChain",
+                          params: [
+                            {
+                              chainId: "0x" + targetNetwork.chainId.toString(16),
+                            },
+                          ],
+                        })
+                        .catch();
+                      if (tx) {
+                        console.log(tx);
+                      }
+                    }
+                  }}
+                >
+                  <b>Click here to switch to {networkLocal && networkLocal.name}</b>
+                </Button>
+              </div>
+            }
+            type="error"
+            closable={false}
+          />
+        </div>
+      );
+    }
+  } else {
+    networkDisplay = <span></span>;
+  }
+
+  const options = [];
+  const networkList = Object.keys(NETWORKS);
+  for (var i = 0; i < configuredNetworks.length; i++) {
+    const networkName = configuredNetworks[i];
+    if (networkList.indexOf(networkName) > -1) {
+      options.push(
+        <Select.Option key={networkName} value={NETWORKS[networkName].name}>
+          <span role="img" aria-label={"smile"} style={{ color: NETWORKS[networkName].color, fontSize: 20 }}>
+            {NETWORKS[networkName].name}
+          </span>
+        </Select.Option>,
+      );
+    }
+  }
+
+  const networkSelect = (
+    <Select
+      size="large"
+      defaultValue={targetNetwork.name}
+      style={{ textAlign: "left", width: 140, fontSize: 30 }}
+      onChange={value => {
+        console.log(targetNetwork.name);
+        console.log(targetNetwork.chainId);
+        console.log(value);
+        console.log(NETWORKS[value]);
+        if (targetNetwork.chainId !== NETWORKS[value].chainId) {
+          window.localStorage.setItem("network", value);
+          setTimeout(async () => {
+            targetNetwork = NETWORKS[value];
+
+            const ethereum = window.ethereum;
+            const data = [
+              {
+                chainId: "0x" + targetNetwork.chainId.toString(16),
+                chainName: targetNetwork.name,
+                nativeCurrency: targetNetwork.nativeCurrency,
+                rpcUrls: [targetNetwork.rpcUrl],
+                blockExplorerUrls: [targetNetwork.blockExplorer],
+              },
+            ];
+            console.log("data", data);
+            // try to add new chain
+            try {
+              await ethereum.request({ method: "wallet_addEthereumChain", params: data });
+            } catch (error) {
+              // if failed, try a network switch instead
+              await ethereum
+                .request({
+                  method: "wallet_switchEthereumChain",
+                  params: [
+                    {
+                      chainId: "0x" + targetNetwork.chainId.toString(16),
+                    },
+                  ],
+                })
+                .catch();
+              if (tx) {
+                console.log(tx);
+              }
+            }
+            window.location.reload();
+          }, 1000);
+        }
+      }}
+    >
+      {options}
+    </Select>
+  );
+
   const loadWeb3Modal = useCallback(async () => {
     const provider = await web3Modal.connect();
     setInjectedProvider(new ethers.providers.Web3Provider(provider));
@@ -252,9 +392,6 @@ function App(props) {
 
   const faucetAvailable = localProvider && localProvider.connection && targetNetwork.name.indexOf("local") !== -1;
   const signaturesRequired = useContractReader(readContracts, contractName, "signaturesRequired");
-  const gun = Gun({
-    peers: ["http:localhost:8000/gun"], // Put the relay node that you want here
-  });
 
   console.log(localProvider);
 
@@ -265,43 +402,68 @@ function App(props) {
     localProvider,
     1,
   );
+  console.log(localProvider);
 
   return (
     <div className="App">
       {/* ✏️ Edit the header and change the title to your project name */}
       <Header />
-      <NetworkDisplay
+      {/* <NetworkDisplay
         NETWORKCHECK={NETWORKCHECK}
         localChainId={localChainId}
         selectedChainId={selectedChainId}
         targetNetwork={targetNetwork}
         logoutOfWeb3Modal={logoutOfWeb3Modal}
         USE_NETWORK_SELECTOR={USE_NETWORK_SELECTOR}
-      />
+      /> */}
+      {/* <span className="flex inline-flex sm:ml-auto sm:mt-0 flex-col lg:flex-row ml-2">
+        <Account
+          address={address}
+          localProvider={localProvider}
+          userSigner={userSigner}
+          mainnetProvider={mainnetProvider}
+          price={price}
+          web3Modal={web3Modal}
+          loadWeb3Modal={loadWeb3Modal}
+          logoutOfWeb3Modal={logoutOfWeb3Modal}
+          blockExplorer={blockExplorer}
+          networkSelect={networkSelect}
+          networkDisplay={networkDisplay}
+        />
+      </span> */}
+      <div style={{ position: "absolute", left: "20" }}>
+        <CreateNewMultisig
+          address={address}
+          mainnetProvider={mainnetProvider}
+          localProvider={localProvider}
+          NETWORKS={NETWORKS}
+        />
+      </div>
+
       <Menu style={{ textAlign: "center", marginTop: 40 }} selectedKeys={[location.pathname]} mode="horizontal">
         <Menu.Item key="/">
           <Link to="/">Multi Sig</Link>
         </Menu.Item>
-        <Menu.Item key="/hints">
-          <Link to="/hints">Owners</Link>
+        <Menu.Item key="/signers">
+          <Link to="/signers">Owners</Link>
         </Menu.Item>
-        <Menu.Item key="/exampleui">
-          <Link to="/exampleui">Create</Link>
+        <Menu.Item key="/proposetransaction">
+          <Link to="/proposetransaction">Create</Link>
         </Menu.Item>
-        <Menu.Item key="/mainnetdai">
-          <Link to="/mainnetdai">Pool</Link>
+        <Menu.Item key="/pendingtransaction">
+          <Link to="/pendingtransaction">Pool</Link>
         </Menu.Item>
-        <Menu.Item key="/subgraph">
-          <Link to="/subgraph">Uniswap</Link>
+        <Menu.Item key="/uniswap">
+          <Link to="/uniswap">Uniswap</Link>
         </Menu.Item>
         <Menu.Item key="/debug">
           <Link to="/debug">Debug Contracts</Link>
         </Menu.Item>
       </Menu>
-
       <Switch>
         <Route exact path="/">
           <Home
+            contractAddress={contractAddress}
             yourLocalBalance={yourLocalBalance}
             readContracts={readContracts}
             contractName={contractName}
@@ -325,8 +487,10 @@ function App(props) {
             contractConfig={contractConfig}
           />
         </Route>
-        <Route path="/hints">
+        <Route path="/signers">
           <Hints
+            contractAddress={contractAddress}
+            poolServerUrl={BACKEND_URL}
             address={address}
             yourLocalBalance={yourLocalBalance}
             mainnetProvider={mainnetProvider}
@@ -340,11 +504,12 @@ function App(props) {
             localProvider={localProvider}
             signaturesRequired={signaturesRequired}
             // ownerEvents={ownerEvents}
-            gun={gun}
           />
         </Route>
-        <Route path="/exampleui">
+        <Route path="/proposetransaction">
           <ExampleUI
+            contractAddress={contractAddress}
+            poolServerUrl={BACKEND_URL}
             address={address}
             userSigner={userSigner}
             mainnetProvider={mainnetProvider}
@@ -356,12 +521,12 @@ function App(props) {
             readContracts={readContracts}
             purpose={purpose}
             contractName={contractName}
-            gun={gun}
           />
         </Route>
-        <Route path="/mainnetdai">
+        <Route path="/pendingtransaction">
           <Pool
-            gun={gun}
+            contractAddress={contractAddress}
+            poolServerUrl={BACKEND_URL}
             userSigner={userSigner}
             contractName={contractName}
             localProvider={localProvider}
@@ -375,7 +540,7 @@ function App(props) {
             signaturesRequired={signaturesRequired}
           />
         </Route>
-        <Route path="/subgraph">
+        <Route path="/uniswap">
           <Uniswap
             readContracts={readContracts}
             contractName={contractName}
@@ -389,15 +554,12 @@ function App(props) {
             tx={tx}
             price={price}
             contractName={contractName}
-            gun={gun}
             nonce={nonce}
             yourLocalBalance={yourLocalBalance}
           />
         </Route>
       </Switch>
-
       <ThemeSwitch />
-
       {/* 👨‍💼 Your account is in the top right with a wallet at connect options */}
       <div style={{ position: "fixed", textAlign: "right", right: 0, top: 0, padding: 10 }}>
         <div style={{ display: "flex", flex: 1, alignItems: "center" }}>
@@ -411,7 +573,6 @@ function App(props) {
             </div>
           )}
           <Account
-            useBurner={USE_BURNER_WALLET}
             address={address}
             localProvider={localProvider}
             userSigner={userSigner}
@@ -421,13 +582,14 @@ function App(props) {
             loadWeb3Modal={loadWeb3Modal}
             logoutOfWeb3Modal={logoutOfWeb3Modal}
             blockExplorer={blockExplorer}
+            networkSelect={networkSelect}
+            networkDisplay={networkDisplay}
           />
         </div>
         {yourLocalBalance.lte(ethers.BigNumber.from("0")) && (
           <FaucetHint localProvider={localProvider} targetNetwork={targetNetwork} address={address} />
         )}
       </div>
-
       {/* 🗺 Extra UI like gas price, eth price, faucet, and support: */}
       <div style={{ position: "fixed", textAlign: "left", left: 0, bottom: 20, padding: 10 }}>
         <Row align="middle" gutter={[4, 4]}>

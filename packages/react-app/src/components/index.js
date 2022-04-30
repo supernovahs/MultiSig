@@ -27,3 +27,5 @@ export { default as TransactionListItem } from "./TransactionListItem";
 export { default as TransactionDetailsModal } from "./TransactionDetailsModal";
 export { default as TransactionDetails } from "./TransactionDetails";
 export { default as TransactionListItemPool } from "./TransactionListItemPool";
+export { default as CreateNewMultisig } from "./Multisig/CreateNewMultisig";
+export { default as WalletConnectInput } from "./WalletConnectInput";
